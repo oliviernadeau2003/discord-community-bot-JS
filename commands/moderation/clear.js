@@ -41,17 +41,11 @@ module.exports = {
                 return reaction.emoji.name === '🗑️' && user.id === interaction.user.id;
             };
 
-            const collector = reply.createReactionCollector({ filter: collectorFilter, time: 20000 }); // 10 sec
+            const collector = reply.createReactionCollector({ filter: collectorFilter, time: 20000 }); // 20 sec
 
-            collector.on('collect', async _ => {
-                await reply.delete();
-                collector.stop();
-            });
+            collector.on('collect', async _ => await reply.delete() & collector.stop());
 
-            collector.on('end', async _ => {
-                console.log(`[LOG] Collector expired in channel [${channel.name}] : ID ${channel}`);
-                // await reply.delete();
-            });
+            collector.on('end', _ => console.log(`[LOG] Collector expired in channel [${channel.name}] : ID ${channel}`) & reply.reactions.cache.get('🗑️').remove());
 
         } else {
             await interaction.reply({ content: 'Channel not found.', ephemeral: true });
