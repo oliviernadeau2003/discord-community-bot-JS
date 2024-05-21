@@ -31,27 +31,26 @@ module.exports = {
         const channel = interaction.channel;
         if (channel) {
             await channel.bulkDelete(amount + 1, true); // +1 to include the command message itself
-            const message = await interaction.reply({ content: `${amount} messages cleared.`, fetchReply: true });
+            const reply = await interaction.reply({ content: `${amount} messages cleared.`, fetchReply: true });
 
             // React with Unicode emoji
-            await message.react('🗑️');
+            await reply.react('🗑️');
 
             // Create reaction collector
             const collectorFilter = (reaction, user) => {
                 return reaction.emoji.name === '🗑️' && user.id === interaction.user.id;
             };
 
-            const collector = message.createReactionCollector({ filter: collectorFilter, time: 5000 }); // 10 sec
+            const collector = reply.createReactionCollector({ filter: collectorFilter, time: 20000 }); // 10 sec
 
-            collector.on('collect', async (reaction, user) => {
-                console.log(`Collected ${reaction.emoji.name} from ${user.tag}`);
-                await message.delete();
+            collector.on('collect', async _ => {
+                await reply.delete();
                 collector.stop();
             });
 
             collector.on('end', async _ => {
                 console.log(`[LOG] Collector expired in channel [${channel.name}] : ID ${channel}`);
-                await message.delete();
+                // await reply.delete();
             });
 
         } else {

@@ -2,14 +2,23 @@ const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
 const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
+const roleManager = require('./scripts/role_manager'); // Import the role_manager module
 
 dotenv.config();
 
 // Create a new client instance
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildMessageReactions,
+        GatewayIntentBits.GuildMembers
+    ]
+});
 
-client.once(Events.ClientReady, readyClient => {
-    console.log(`Ready! Logged in as ${readyClient.user.tag}`);
+client.once(Events.ClientReady, async readyClient => { // Mark the callback as async
+    console.log(`[APP] Ready! Logged in as ${readyClient.user.tag}`);
+    await roleManager.sendRoleMessage(client); // Call sendRoleMessage with the client instance
 });
 
 //* Loading Commands
@@ -56,6 +65,14 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 });
 
-// * When everything is finished, the boat launches
-// Log in to Discord with your client's token
+//* Event Listeners for role management
+client.on('messageReactionAdd', async (reaction, user) => {
+    await roleManager.handleReactionAdd(reaction, user, client);
+});
+
+client.on('messageReactionRemove', async (reaction, user) => {
+    await roleManager.handleReactionRemove(reaction, user, client);
+});
+
+//* Log in to Discord with your client's token
 client.login(process.env.DISCORD_TOKEN);
