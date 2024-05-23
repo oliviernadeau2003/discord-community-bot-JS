@@ -43,9 +43,35 @@ module.exports = {
 
             const collector = reply.createReactionCollector({ filter: collectorFilter, time: 10000 }); // 10 sec
 
-            collector.on('collect', async _ => await reply.delete() & collector.stop());
+            let messageCollected = false;
 
-            collector.on('end', _ => console.log(`[LOG] Collector expired in channel [${channel.name}] : ID ${channel}`) & reply.reactions.cache.get('🗑️').remove());
+            collector.on('collect', async _ => {
+                // Set the flag to false when the message is collected
+                messageCollected = true;
+                await reply.delete();
+                collector.stop();
+            });
+
+            collector.on('end', async () => {
+                // If the message has been manually deleted, there's no need to attempt reaction removal
+                if (messageCollected) return;
+
+                try {
+                    // Check if the message still exists before attempting to remove the reaction
+                    const fetchedMessage = await channel.messages.fetch(reply.id);
+                    if (fetchedMessage) {
+                        const reaction = fetchedMessage.reactions.cache.get('🗑️');
+                        if (reaction) {
+                            await reaction.remove();
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error removing reaction:', error);
+                }
+                console.log(`[LOG] Collector expired in channel [${channel.name}] : ID ${channel.id}`);
+            });
+
+
 
         } else {
             await interaction.reply({ content: 'Channel not found.', ephemeral: true });
