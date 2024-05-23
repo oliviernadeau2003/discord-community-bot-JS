@@ -1,8 +1,2 @@
 
-    - Adding a music player (either based on youtube link or using the spotify api and then making a youtube search)
-        + making a waiting list
-        + adding music to queue list
-        + adding clear function
-        + adding stop command
-
     - Adding a command that display personnal / Community website

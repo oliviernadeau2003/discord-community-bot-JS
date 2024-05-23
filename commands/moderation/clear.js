@@ -41,7 +41,7 @@ module.exports = {
                 return reaction.emoji.name === '🗑️' && user.id === interaction.user.id;
             };
 
-            const collector = reply.createReactionCollector({ filter: collectorFilter, time: 20000 }); // 20 sec
+            const collector = reply.createReactionCollector({ filter: collectorFilter, time: 10000 }); // 10 sec
 
             collector.on('collect', async _ => await reply.delete() & collector.stop());
 
