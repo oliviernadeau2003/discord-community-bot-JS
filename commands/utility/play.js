@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus, VoiceConnectionStatus, entersState, getVoiceConnection } = require('@discordjs/voice');
-const ytdl = require('ytdl-core');
+// const ytdl = require('ytdl-core'); //? Outdated
+const ytdl = require("@distube/ytdl-core");
 
 // Define an array to store queued songs
 const queue = [];
