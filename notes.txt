@@ -1,2 +1,4 @@
 
     - Adding a command that display personnal / Community website
+
+    - imagine command (using stable diffusion API from automatic1111)

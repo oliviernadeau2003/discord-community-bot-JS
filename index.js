@@ -17,6 +17,7 @@ const client = new Client({
     ]
 });
 
+
 client.once(Events.ClientReady, async readyClient => { // Mark the callback as async
     console.log(`[APP] Ready! Logged in as ${readyClient.user.tag}`);
     await roleManager.sendRoleMessage(client); // Call sendRoleMessage with the client instance
