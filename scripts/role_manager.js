@@ -6,8 +6,8 @@ const ROLE_MAPPING = {
     "🤔": "IT Curious",
 };
 
-const CHANNEL_ID = '1221094114347581450';
-const GUILD_ID = "1042646038944698408";
+const GUILD_ID = "1042646038944698408";     // Server ID
+const CHANNEL_ID = '1221094114347581450';   // Channel ID
 
 module.exports = {
     // Function to handle adding roles

@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, Colors } = require('discord.js');
+const { SlashCommandBuilder, AttachmentBuilder, EmbedBuilder, Colors } = require('discord.js');
 
 // Define a reduced dictionary of color names to Discord.js color constants
 const discordColors = {
@@ -25,9 +25,7 @@ const discordColors = {
     'dark_gold': Colors.DarkGold,
     'dark_orange': Colors.DarkOrange,
     'dark_red': Colors.DarkRed,
-    'dark_grey': Colors.DarkGrey,
     'light_grey': Colors.LightGrey,
-    'dark_navy': Colors.DarkNavy,
 };
 
 module.exports = {
@@ -46,32 +44,7 @@ module.exports = {
             option.setName('color')
                 .setDescription('Color of the embed')
                 .setRequired(false)
-                .addChoices(
-                    { name: 'Default', value: 'default' },
-                    { name: 'White', value: 'white' },
-                    { name: 'Aqua', value: 'aqua' },
-                    { name: 'Green', value: 'green' },
-                    { name: 'Blue', value: 'blue' },
-                    { name: 'Yellow', value: 'yellow' },
-                    { name: 'Purple', value: 'purple' },
-                    { name: 'Luminous Vivid Pink', value: 'luminous_vivid_pink' },
-                    { name: 'Fuchsia', value: 'fuchsia' },
-                    { name: 'Gold', value: 'gold' },
-                    { name: 'Orange', value: 'orange' },
-                    { name: 'Red', value: 'red' },
-                    { name: 'Grey', value: 'grey' },
-                    { name: 'Darker Grey', value: 'darker_grey' },
-                    { name: 'Navy', value: 'navy' },
-                    { name: 'Dark Aqua', value: 'dark_aqua' },
-                    { name: 'Dark Green', value: 'dark_green' },
-                    { name: 'Dark Blue', value: 'dark_blue' },
-                    { name: 'Dark Purple', value: 'dark_purple' },
-                    { name: 'Dark Vivid Pink', value: 'dark_vivid_pink' },
-                    { name: 'Dark Gold', value: 'dark_gold' },
-                    { name: 'Dark Orange', value: 'dark_orange' },
-                    { name: 'Dark Red', value: 'dark_red' },
-                    { name: 'Light Grey', value: 'light_grey' }
-                ))
+                .addChoices(...Object.keys(discordColors).map(key => ({ name: key.replace(/_/g, ' '), value: key }))))
         .addStringOption(option =>
             option.setName('author')
                 .setDescription('Author of the post')
@@ -89,8 +62,8 @@ module.exports = {
                 .setDescription('Thumbnail URL')
                 .setRequired(false))
         .addStringOption(option =>
-            option.setName('image')
-                .setDescription('Image URL')
+            option.setName('image_url')
+                .setDescription('Image URL (direct link to the file)')
                 .setRequired(false))
         .addStringOption(option =>
             option.setName('footer')
@@ -108,17 +81,16 @@ module.exports = {
     async execute(interaction) {
         const title = interaction.options.getString('title');
         const description = interaction.options.getString('description');
-        let color = interaction.options.getString('color') || 'blue';   //! CHANGE FOR GETTING ACTUAL VALUE FROM CHOICE IF A CHOICE IS GIVEN ? (OR ELSE MAYBE CHECK IF ITS A HEX VALUE?)
+        const color = interaction.options.getString('color') || 'blue';
         const author = interaction.options.getString('author');
         const authorIconUrl = interaction.options.getString('author_icon_url');
         const url = interaction.options.getString('url');
         const thumbnail = interaction.options.getString('thumbnail');
-        const image = interaction.options.getString('image');
+        const imageURL = interaction.options.getString('image_url');
         const footer = interaction.options.getString('footer');
         const footerIconUrl = interaction.options.getString('footer_icon_url');
         const timestamp = interaction.options.getBoolean('timestamp') || false;
 
-        color = color.toLowerCase();
         const colorValue = discordColors[color] || Colors.Blue;
 
         const embed = new EmbedBuilder()
@@ -129,11 +101,17 @@ module.exports = {
         if (author) embed.setAuthor({ name: author, iconURL: authorIconUrl || undefined });
         if (url) embed.setURL(url);
         if (thumbnail) embed.setThumbnail(thumbnail);
-        if (image) embed.setImage(image);
+
+        // let file;
+        if (imageURL) {
+            embed.setImage(imageURL);
+        }
+
         if (footer) embed.setFooter({ text: footer, iconURL: footerIconUrl || undefined });
         if (timestamp) embed.setTimestamp();
 
-        await interaction.channel.send({ embeds: [embed] });
+        const options = { embeds: [embed] };
+        await interaction.channel.send(options);
         await interaction.reply({ content: 'Post created!', ephemeral: true });
-    }
+    },
 };
