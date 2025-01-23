@@ -101,12 +101,7 @@ module.exports = {
         if (author) embed.setAuthor({ name: author, iconURL: authorIconUrl || undefined });
         if (url) embed.setURL(url);
         if (thumbnail) embed.setThumbnail(thumbnail);
-
-        // let file;
-        if (imageURL) {
-            embed.setImage(imageURL);
-        }
-
+        if (imageURL) embed.setImage(imageURL);
         if (footer) embed.setFooter({ text: footer, iconURL: footerIconUrl || undefined });
         if (timestamp) embed.setTimestamp();
 
