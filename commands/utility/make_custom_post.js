@@ -88,13 +88,17 @@ module.exports = {
         Au programme :  
 
         🎮 **Dale & Dawson** – Qui sera le dernier survivant ?  
+        
         🔒 **Lockdown Protocol** – Parviendras-tu à t’échapper… ou trahir tes coéquipiers?  
+        
         🚀 **Among Us** – Sabotage, mensonges et votes injustes au rendez-vous !  
+
         ❓ Et d’autres jeux à déterminer ensemble !  
+
 
         📅 **Date :** [À compléter]  
         🕘 **Heure :** [À compléter]  
-        📍 **Lieu :** Ici même !  
+        📍 **Lieu :** Ici même, sur ce serveur !  
 
         Viens prouver que tu es le maître de la manipulation... ou juste te faire trahir par tes amis ! 😈  
 

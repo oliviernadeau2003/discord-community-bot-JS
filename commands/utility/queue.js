@@ -17,7 +17,7 @@ module.exports = {
             // Fetch the duration information from the audio stream using ytdl-core
             const info = await ytdl.getBasicInfo(item.url);
             const duration = await calculateDuration(info);
-            return `${index + 1}. ${info.videoDetails.title} - ${duration}`;
+            return `*** ${index + 1} ***. ${info.videoDetails.title} - ${duration}`;
         }));
 
         // Reply with the queue message
