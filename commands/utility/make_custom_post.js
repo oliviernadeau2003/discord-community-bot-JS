@@ -1,4 +1,5 @@
-const { SlashCommandBuilder, AttachmentBuilder, EmbedBuilder, Colors } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, Colors } = require('discord.js');
+const { MessageFlags } = require('discord-api-types/v10');
 
 // Define a reduced dictionary of color names to Discord.js color constants
 const discordColors = {
@@ -87,7 +88,7 @@ module.exports = {
         
         Au programme :  
 
-        🎮 **Dale & Dawson** – Qui sera le dernier survivant ?  
+        🎮 **Dale & Dawson** – Qui sera l'employé du mois ?  
         
         🔒 **Lockdown Protocol** – Parviendras-tu à t’échapper… ou trahir tes coéquipiers?  
         
@@ -129,6 +130,6 @@ module.exports = {
 
         const options = { embeds: [embed] };
         await interaction.channel.send(options);
-        await interaction.reply({ content: 'Post created!', ephemeral: true });
+        await interaction.reply({ content: 'Post created!', flags: MessageFlags.Ephemeral });
     },
 };
