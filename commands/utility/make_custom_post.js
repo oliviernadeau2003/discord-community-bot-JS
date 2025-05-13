@@ -96,9 +96,8 @@ module.exports = {
 
         ❓ Et d’autres jeux à déterminer ensemble !  
 
-
-        📅 **Date :** [À compléter]  
-        🕘 **Heure :** [À compléter]  
+        📅 **Date :** Samedi 24 Mai  
+        🕘 **Heure :** 18h00  
         📍 **Lieu :** Ici même, sur ce serveur !  
 
         Viens prouver que tu es le maître de la manipulation... ou juste te faire trahir par tes amis ! 😈  
