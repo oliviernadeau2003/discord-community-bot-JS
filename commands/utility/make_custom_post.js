@@ -96,13 +96,14 @@ module.exports = {
 
         ❓ Et d’autres jeux à déterminer ensemble !  
 
-        📅 **Date :** Samedi 24 Mai  
-        🕘 **Heure :** 18h00  
+        📅 **Date :** Mardi 20 Mai  
+        🕘 **Heure :** 19h30  
         📍 **Lieu :** Ici même, sur ce serveur !  
 
         Viens prouver que tu es le maître de la manipulation... ou juste te faire trahir par tes amis ! 😈  
 
-        Réagis avec ✅ si tu es partant(e) ! À bientôt dans l’ombre... 😏`;
+        Réagis avec ✅ si tu es partant(e) !
+        À bientôt dans l’ombre... 😏`;
 
         const colorValue = Colors.Gold;
         const author = `MrSkyzZ`;
@@ -113,7 +114,6 @@ module.exports = {
         const footer = `Mr.SkyzZ`;
         const footerIconUrl = interaction.options.getString('footer_icon_url');
         const timestamp = true;
-
 
         const embed = new EmbedBuilder()
             .setTitle(title)
