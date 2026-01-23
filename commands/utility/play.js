@@ -1,44 +1,32 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus, VoiceConnectionStatus, entersState, getVoiceConnection } = require('@discordjs/voice');
-// const ytdl = require('ytdl-core'); //? Outdated
-const ytdl = require("@distube/ytdl-core");
+const { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus, VoiceConnectionStatus, entersState } = require('@discordjs/voice');
+const { exec } = require('yt-dlp-exec');
+const fs = require('fs');
+const path = require('path');
 
-// Define an array to store queued songs
+// ------------------------
+// Variables globales
+// ------------------------
 const queue = [];
-// Create a single audio player instance
 const player = createAudioPlayer();
-// Maintain the connection state
 let connection;
 
-function clearQueue() {
-    queue.length = 0;
-}
-
-function resetPlayer() {
-    player.stop();
-}
-
-function resetConnection() {
-    connection = undefined;
-}
-
+// ------------------------
+// Gestion de la connexion
+// ------------------------
 function createConnection(channelId, guildId, adapterCreator) {
-    connection = joinVoiceChannel({
-        channelId: channelId,
-        guildId: guildId,
-        adapterCreator: adapterCreator,
-    });
+    connection = joinVoiceChannel({ channelId, guildId, adapterCreator });
     connection.subscribe(player);
 
-    connection.on(VoiceConnectionStatus.Disconnected, async (oldState, newState) => {
+    connection.on(VoiceConnectionStatus.Disconnected, async () => {
         try {
             await Promise.race([
-                entersState(connection, VoiceConnectionStatus.Signalling, 5_000),
-                entersState(connection, VoiceConnectionStatus.Connecting, 5_000),
+                entersState(connection, VoiceConnectionStatus.Signalling, 5000),
+                entersState(connection, VoiceConnectionStatus.Connecting, 5000),
             ]);
-        } catch (error) {
+        } catch {
             connection.destroy();
-            connection = null;
+            connection = undefined;
             clearQueue();
             resetPlayer();
         }
@@ -50,6 +38,34 @@ function createConnection(channelId, guildId, adapterCreator) {
     });
 }
 
+// ------------------------
+// Gestion du player
+// ------------------------
+function clearQueue() { queue.length = 0; }
+function resetPlayer() { player.stop(); }
+function resetConnection() { connection = undefined; }
+
+// ------------------------
+// Télécharge et crée la ressource audio
+// ------------------------
+async function getAudioResource(url) {
+    const tempFile = path.join(__dirname, 'temp_audio.m4a');
+
+    // Télécharger l'audio via yt-dlp
+    await exec(url, {
+        output: tempFile,
+        format: 'bestaudio[ext=m4a]/bestaudio',
+        quiet: true,
+        noWarnings: true
+    });
+
+    if (!fs.existsSync(tempFile)) throw new Error('Failed to download audio');
+    return createAudioResource(fs.createReadStream(tempFile));
+}
+
+// ------------------------
+// Commande Discord
+// ------------------------
 module.exports = {
     queue,
     player,
@@ -58,69 +74,71 @@ module.exports = {
     resetPlayer,
     createConnection,
     resetConnection,
+
     data: new SlashCommandBuilder()
         .setName('play')
         .setDescription('Plays a YouTube video in your current voice channel')
         .addStringOption(option =>
             option.setName('url')
                 .setDescription('The YouTube URL')
-                .setRequired(true)),
+                .setRequired(true)
+        ),
+
+    // ... imports et variables inchangés
+
     async execute(interaction) {
         const url = interaction.options.getString('url');
 
-        // Validate if the URL is a YouTube link
-        const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})$/;
-        if (!youtubeRegex.test(url)) {
-            return interaction.reply('Invalid YouTube URL. Please provide a valid YouTube video link.');
-        }
-
-        // Ensure the user is in a voice channel
         const voiceChannel = interaction.member.voice.channel;
-        if (!voiceChannel) {
+        if (!voiceChannel)
             return interaction.reply('You need to be in a voice channel to use this command.');
-        }
 
-        // Create the connection if not already created
+        // Déférer la réponse pour gagner du temps
+        await interaction.deferReply();
+
         if (!connection) {
             createConnection(voiceChannel.id, interaction.guild.id, interaction.guild.voiceAdapterCreator);
         }
 
-        // Download the audio from YouTube
-        const stream = ytdl(url, { filter: 'audioonly', quality: 'highestaudio' });
-        const resource = createAudioResource(stream);
-
-        // If there is already a song playing or in the queue, add this song to the queue
-        if (queue.length > 0 || player.state.status === AudioPlayerStatus.Playing) {
-            queue.push({ url, resource });
-            return interaction.reply(`Added to queue: ${url}`);
+        let resource, info;
+        try {
+            info = await exec(url, { dumpSingleJson: true, quiet: true });
+            resource = await getAudioResource(url);
+        } catch (error) {
+            console.error(error);
+            return interaction.editReply('❌ Could not retrieve audio stream.');
         }
 
-        // Play the song
+        const title = info.title || 'Unknown title';
+        const duration = info.duration || 0;
+
+        if (queue.length > 0 || player.state.status === AudioPlayerStatus.Playing) {
+            queue.push({ url, resource, title, duration });
+            return interaction.editReply(`➕ Added to queue: ${title}`);
+        }
+
+        queue.push({ url, resource, title, duration });
         player.play(resource);
+        await interaction.editReply(`🎶 Now playing: ${title}`);
 
-        // Respond to the interaction
-        await interaction.reply(`Playing now: ${url}`);
-
-        // Handle the end of the audio
-        player.once(AudioPlayerStatus.Idle, () => {
+        player.on(AudioPlayerStatus.Idle, () => {
             if (queue.length > 0) {
-                const { resource: nextResource } = queue.shift();
-                player.play(nextResource);
-            } else {
-                if (connection) {
-                    connection.destroy();
-                    connection = undefined;
-                }
+                const next = queue.shift();
+                player.play(next.resource);
+            } else if (connection) {
+                connection.destroy();
+                connection = undefined;
             }
         });
 
-
         player.on('error', error => {
             console.error('Error:', error);
-            interaction.followUp('There was an error playing the audio.');
+            if (interaction.replied || interaction.deferred) {
+                interaction.followUp('❌ Audio error.');
+            }
             if (connection) {
                 connection.destroy();
-                connection = null; // Reset the connection state
+                connection = undefined;
             }
         });
     },

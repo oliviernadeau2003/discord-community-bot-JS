@@ -1,4 +1,14 @@
 
+	- Make an invite command that send invite to a given list of discord user wich send an invite embed like "You've been invited to an Impostor Night ! Join us this Friday from 19pm till the sun rise"
+
+
+
+
+	-----------------------------------------------------------------------------------------------------------------------
+	
+	
     - Adding a command that display personnal / Community website
 
     - imagine command (using stable diffusion API from automatic1111)
+	
+	

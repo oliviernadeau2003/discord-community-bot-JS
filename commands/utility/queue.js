@@ -1,44 +1,38 @@
 const { SlashCommandBuilder } = require('discord.js');
-const ytdl = require("@distube/ytdl-core");
-const { queue } = require('./play'); // Import the queue variable from play.js
+const { queue } = require('./play'); // Importer la queue directement
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('queue')
         .setDescription('Displays the current queue'),
+
     async execute(interaction) {
-        // Check if there are items in the queue
         if (queue.length === 0) {
             return interaction.reply('The queue is empty.');
         }
 
-        // Generate a message with the queued song titles and time durations
-        const queueMessage = await Promise.all(queue.map(async (item, index) => {
-            // Fetch the duration information from the audio stream using ytdl-core
-            const info = await ytdl.getBasicInfo(item.url);
-            const duration = await calculateDuration(info);
-            return `*** ${index + 1} ***. ${info.videoDetails.title} - ${duration}`;
-        }));
+        await interaction.deferReply(); // Toujours déférer si traitement potentiellement long
 
-        // Reply with the queue message
-        await interaction.reply(`Current queue:\n${queueMessage.join('\n')}`);
+        const queueMessage = queue.map((item, index) => {
+            const duration = formatDuration(item.duration);
+            return `**${index + 1}.** ${item.title} — ${duration}`;
+        });
+
+        await interaction.editReply(`🎶 **Current queue:**\n${queueMessage.join('\n')}`);
     },
 };
 
-// Function to calculate the duration of the audio resource
-async function calculateDuration(info) {
-    try {
-        // Parse the duration from the fetched information
-        const durationInSeconds = parseInt(info.videoDetails.lengthSeconds);
+// Helper pour convertir la durée en hh:mm:ss ou mm:ss
+function formatDuration(durationInSeconds) {
+    if (!durationInSeconds || isNaN(durationInSeconds)) return 'Unknown';
 
-        // Convert the duration to a human-readable format (hh:mm:ss)
-        const hours = Math.floor(durationInSeconds / 3600);
-        const minutes = Math.floor((durationInSeconds % 3600) / 60);
-        const seconds = durationInSeconds % 60;
+    const h = Math.floor(durationInSeconds / 3600);
+    const m = Math.floor((durationInSeconds % 3600) / 60);
+    const s = durationInSeconds % 60;
 
-        return `${hours ? hours.toString().padStart(2, '0') + 'm' : ''}${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0' + 's')}`;
-    } catch (error) {
-        console.error('Error calculating duration:', error);
-        return 'Unknown';
+    if (h > 0) {
+        return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     }
+
+    return `${m}:${s.toString().padStart(2, '0')}`;
 }
